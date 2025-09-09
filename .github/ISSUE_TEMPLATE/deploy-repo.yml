@@ -35,11 +35,11 @@ body:
       label: Target Organization
       description: Select the organization where the repository should be deployed
       options:
-        - central-deployment-repo
-        - example-org-1
-        - example-org-2
-        - development-org
-        - production-org
+        - chet-test-byoa
+        - chets-internal-tools
+        - chets-internal-tools2
+        - Some-org-9999
+        - Test-Org-3242
     validations:
       required: true
       
