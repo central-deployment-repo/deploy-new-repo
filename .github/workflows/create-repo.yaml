@@ -36,29 +36,6 @@ jobs:
           echo "repo-name=$REPO_NAME" >> $GITHUB_OUTPUT
           echo "target-org=$TARGET_ORG" >> $GITHUB_OUTPUT
           
-      - name: Validate organization
-        id: validate-org
-        run: |
-          # Read the Organizations.md file to validate the selected organization
-          if [ -f "Organizations.md" ]; then
-            VALID_ORGS=$(grep "^- " Organizations.md | sed 's/^- //')
-            echo "Valid organizations:"
-            echo "$VALID_ORGS"
-            
-            TARGET_ORG="${{ steps.parse-issue.outputs.target-org }}"
-            
-            if echo "$VALID_ORGS" | grep -q "^$TARGET_ORG$"; then
-              echo "✅ Organization '$TARGET_ORG' is valid"
-              echo "valid=true" >> $GITHUB_OUTPUT
-            else
-              echo "❌ Organization '$TARGET_ORG' is not in the approved list"
-              echo "valid=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "❌ Organizations.md file not found"
-            echo "valid=false" >> $GITHUB_OUTPUT
-          fi
-          
       - name: Deploy repository
         if: steps.validate-org.outputs.valid == 'true'
         id: deploy
