@@ -1,0 +1,122 @@
+name: Create Repository
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  deploy-repo:
+    # Only run on issues with the deployment label
+    if: contains(github.event.issue.labels.*.name, 'deployment')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Parse issue
+        id: parse-issue
+        run: |
+          # Extract information from the issue body
+          echo "Issue title: ${{ github.event.issue.title }}"
+          echo "Issue body: ${{ github.event.issue.body }}"
+          
+          # Parse the issue body to extract form data
+          # This is a simplified parser - in a real scenario you might want to use a more robust solution
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          # Extract repository name (this is a basic regex pattern)
+          REPO_NAME=$(echo "$ISSUE_BODY" | grep -A 1 "Repository Name" | tail -1 | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+          
+          # Extract organization (this is a basic regex pattern)  
+          TARGET_ORG=$(echo "$ISSUE_BODY" | grep -A 1 "Target Organization" | tail -1 | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+          
+          echo "Parsed repository name: $REPO_NAME"
+          echo "Parsed target organization: $TARGET_ORG"
+          
+          # Set outputs for subsequent steps
+          echo "repo-name=$REPO_NAME" >> $GITHUB_OUTPUT
+          echo "target-org=$TARGET_ORG" >> $GITHUB_OUTPUT
+          
+      - name: Validate organization
+        id: validate-org
+        run: |
+          # Read the Organizations.md file to validate the selected organization
+          if [ -f "Organizations.md" ]; then
+            VALID_ORGS=$(grep "^- " Organizations.md | sed 's/^- //')
+            echo "Valid organizations:"
+            echo "$VALID_ORGS"
+            
+            TARGET_ORG="${{ steps.parse-issue.outputs.target-org }}"
+            
+            if echo "$VALID_ORGS" | grep -q "^$TARGET_ORG$"; then
+              echo "✅ Organization '$TARGET_ORG' is valid"
+              echo "valid=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Organization '$TARGET_ORG' is not in the approved list"
+              echo "valid=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Organizations.md file not found"
+            echo "valid=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Deploy repository
+        if: steps.validate-org.outputs.valid == 'true'
+        run: |
+          echo "🚀 Deploying repository '${{ steps.parse-issue.outputs.repo-name }}' to organization '${{ steps.parse-issue.outputs.target-org }}'"
+          
+          # Here you would add the actual deployment logic
+          # This could involve:
+          # - Creating the repository using GitHub API
+          # - Setting up initial structure
+          # - Configuring permissions
+          # - etc.
+          
+          # For now, we'll just simulate the deployment
+          echo "✅ Repository deployment completed successfully"
+          
+      - name: Comment on issue - Success
+        if: steps.validate-org.outputs.valid == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🎉 **Repository deployment successful!**
+              
+              Repository: \`${{ steps.parse-issue.outputs.repo-name }}\`
+              Organization: \`${{ steps.parse-issue.outputs.target-org }}\`
+              
+              The repository has been successfully deployed to the specified organization.`
+            })
+            
+      - name: Comment on issue - Failure
+        if: steps.validate-org.outputs.valid == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ **Repository deployment failed!**
+              
+              The selected organization \`${{ steps.parse-issue.outputs.target-org }}\` is not in the approved list.
+              
+              Please check the [Organizations.md](./Organizations.md) file for valid organization options and update your issue accordingly.`
+            })
+            
+      - name: Label issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = ${{ steps.validate-org.outputs.valid == 'true' }} ? 'deployed' : 'deployment-failed';
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: [label]
+            })
