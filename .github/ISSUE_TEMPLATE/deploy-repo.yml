@@ -1,0 +1,64 @@
+name: Deploy New Repository
+description: Request deployment of a new repository to an organization
+title: "[DEPLOY] New Repository Request"
+labels: ["deployment", "new-repo"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Repository Deployment Request
+        
+        Please fill out the following information to request deployment of a new repository.
+        
+  - type: input
+    id: repo-name
+    attributes:
+      label: Repository Name
+      description: What is the name of the repository to be created?
+      placeholder: my-new-repository
+    validations:
+      required: true
+      
+  - type: textarea
+    id: repo-description
+    attributes:
+      label: Repository Description
+      description: Provide a brief description of the repository
+      placeholder: This repository contains...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: target-organization
+    attributes:
+      label: Target Organization
+      description: Select the organization where the repository should be deployed
+      options:
+        - central-deployment-repo
+        - example-org-1
+        - example-org-2
+        - development-org
+        - production-org
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: repo-settings
+    attributes:
+      label: Repository Settings
+      description: Select any additional settings for the repository
+      options:
+        - label: Private repository
+        - label: Initialize with README
+        - label: Add .gitignore template
+        - label: Add license
+        
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any additional information or special requirements
+      placeholder: Special configuration, team access, etc.
+    validations:
+      required: false
