@@ -4,8 +4,8 @@ This file contains the list of available organizations where repositories can be
 
 ## Available Organizations
 
-- central-deployment-repo
-- example-org-1
-- example-org-2
-- development-org
-- production-org
+- chet-test-byoa
+- chets-internal-tools
+- chets-internal-tools2
+- Some-org-9999
+- Test-Org-3242
