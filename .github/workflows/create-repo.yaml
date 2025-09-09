@@ -67,8 +67,8 @@ jobs:
         env:
           TARGET_ORG: ${{ steps.parse-issue.outputs.target-org }}
           REPO_NAME: ${{ steps.parse-issue.outputs.repo-name }}
-          # Dynamic secret reference: <ORG>_SECRET (user will provision e.g. Some-org-9999_SECRET)
-          ORG_TOKEN: ${{ secrets[format('{0}_SECRET', steps.parse-issue.outputs.target-org)] }}
+          # Static secret used for repository creation across all orgs
+          ORG_TOKEN: ${{ secrets.CREATE_REPO }}
         run: |
           set -euo pipefail
           echo "🚀 Deploying repository '${REPO_NAME}' to organization '${TARGET_ORG}'"
