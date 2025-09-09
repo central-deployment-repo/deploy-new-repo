@@ -6,8 +6,6 @@ on:
 
 jobs:
   deploy-repo:
-    # Only run on issues with the deployment label
-    if: contains(github.event.issue.labels.*.name, 'deployment')
     runs-on: ubuntu-latest
     
     steps:
